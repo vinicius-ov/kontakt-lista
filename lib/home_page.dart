@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kontaktlista/add_contact_alert.dart';
 import 'package:kontaktlista/model/contact.dart';
+import 'package:kontaktlista/model/contact_repository.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -13,10 +14,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<Contact> _contacts = List.empty(growable: true);
+  final ContactRepository _contactRepository = ContactRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
   void _loadData() async {
-    debugPrint('fetching addresses...');
-    //_history = await _addressRepository.fetchRemote();
+    debugPrint('fetching contacts...');
+    _contacts = await _contactRepository.fetch();
     setState(() {});
   }
 
@@ -37,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
               onTap: () {
                 debugPrint('show alert...');
-                AddContactAlert.getAlert(context).show;
+                AddContactAlert.getAlert(context).show();
               },
               child: Container(
                   margin: const EdgeInsets.only(right: 20),
@@ -50,13 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
             Expanded(
                 child: _contacts.isEmpty
-                    ? Column(children: [
-                        const Text(
-                            'Lista de contatos vazia. Toque no + acima para inserir.'),
-                        ElevatedButton(
-                            child: Text('Basic Waiting Alert'),
-                            onPressed: () => showShow()),
-                      ])
+                    ? const Text(
+                        'Lista de contatos vazia. Toque no + acima para inserir.')
                     : Scrollbar(
                         child: ListView.builder(
                         itemCount: _contacts.length,
@@ -89,25 +92,5 @@ class _MyHomePageState extends State<MyHomePage> {
                       )))
           ])),
     );
-  }
-
-  void showShow() {
-    Alert(
-      context: context,
-      type: AlertType.info,
-      title: "RFLUTTER ALERT",
-      desc: "Flutter is more awesome with RFlutter Alert.",
-      buttons: [
-        DialogButton(
-          child: Text(
-            "COOL",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => Navigator.pop(context),
-          color: Color.fromRGBO(0, 179, 134, 1.0),
-          radius: BorderRadius.circular(0.0),
-        ),
-      ],
-    ).show();
   }
 }

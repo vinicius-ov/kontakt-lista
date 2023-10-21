@@ -19,7 +19,18 @@ class Contact {
         _phone = ' ',
         _photo = '';
 
-Map<String, dynamic> toMap() {
+  String get getObjectId => _objectId ?? '';
+  String get getName => _name;
+  String get getSurname => _surname;
+  String get getPhone => _phone;
+  String get getPhoto => _photo;
+
+  void setName(String name) => _name = name;
+  void setSurname(String surname) => _surname = surname;
+  void setPhone(String phone) => _phone = phone;
+  void setPhoto(String photo) => _photo = photo;
+
+  Map<String, dynamic> toMap() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['objectId'] = _objectId;
     data['name'] = _name;
@@ -29,7 +40,7 @@ Map<String, dynamic> toMap() {
     return data;
   }
 
-  static Contact fromB4aJson(Map<String, dynamic> result) {
+  static Contact fromJson(Map<String, dynamic> result) {
     Contact contact = Contact(
         result['name'], result['surname'], result['phone'], result['photo']);
     contact._createdAt = result['createdAt'];
@@ -37,5 +48,4 @@ Map<String, dynamic> toMap() {
     contact._updatedAt = result['updatedAt'];
     return contact;
   }
-
 }
