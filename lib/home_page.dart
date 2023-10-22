@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kontaktlista/add_contact_alert.dart';
 import 'package:kontaktlista/model/contact.dart';
-import 'package:kontaktlista/model/contact_repository.dart';
+import 'package:kontaktlista/repositories/contact_repository.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -43,9 +43,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   margin: const EdgeInsets.only(right: 20),
                   child: const Icon(Icons.refresh))),
           GestureDetector(
-              onTap: () {
+              onTap: () async {
                 debugPrint('show alert...');
-                AddContactAlert.getAlert(context).show();
+                // AddContactAlert.getAlert(context).show();
+                await AddContactAlert.show2(context);
               },
               child: Container(
                   margin: const EdgeInsets.only(right: 20),
