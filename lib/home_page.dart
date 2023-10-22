@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kontaktlista/add_contact_alert.dart';
+import 'package:kontaktlista/edit_contact.dart';
 import 'package:kontaktlista/model/contact.dart';
 import 'package:kontaktlista/repositories/contact_repository.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -44,9 +45,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: const Icon(Icons.refresh))),
           GestureDetector(
               onTap: () async {
-                debugPrint('show alert...');
-                // AddContactAlert.getAlert(context).show();
-                await AddContactAlert.show2(context);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => EditContactPage(
+                            title: 'Novo contato',
+                            contactRepository: ContactRepository())));
               },
               child: Container(
                   margin: const EdgeInsets.only(right: 20),
