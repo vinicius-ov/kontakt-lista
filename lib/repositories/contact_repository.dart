@@ -37,9 +37,12 @@ class ContactRepository implements CrudInterface {
   @override
   Future<bool> insert(Contact address) async {
     try {
+      print('tentando insert...');
       var result = await _dio.post('/Contacts', data: address.toMap());
+
       return (result.statusCode ?? 0) == 200;
     } on Exception catch (e) {
+      print('deu ruim insert...');
       return false;
     }
   }

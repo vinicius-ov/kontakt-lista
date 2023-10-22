@@ -11,10 +11,12 @@ class EditContactPage extends StatefulWidget {
       {super.key,
       required this.title,
       this.contact,
-      required this.contactRepository});
+      required this.contactRepository,
+      required this.isNewContact});
   final String title;
   final Contact? contact;
   final ContactRepository contactRepository;
+  final bool isNewContact;
 
   @override
   State<EditContactPage> createState() => _EditContactPageState();
@@ -28,6 +30,7 @@ class _EditContactPageState extends State<EditContactPage> {
 
   late Contact _contact;
   late ContactRepository _contactRepository;
+  bool _isNewContact = false;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _EditContactPageState extends State<EditContactPage> {
     nameInputController.text = _contact.getName;
     surnameInputController.text = _contact.getSurname;
     phoneInputController.text = _contact.getPhone;
+    _isNewContact = widget.isNewContact;
   }
 
   @override
@@ -132,8 +136,10 @@ class _EditContactPageState extends State<EditContactPage> {
                             _contact.setName(nameInputController.text);
                             _contact.setSurname(surnameInputController.text);
                             _contact.setPhone(phoneInputController.text);
-                            bool success =
-                                await _contactRepository.update(_contact);
+                            //if insert else update
+                            bool success = _isNewContact
+                                ? await _contactRepository.insert(_contact)
+                                : await _contactRepository.update(_contact);
                             if (success) {
                               setState(() {});
                             }
