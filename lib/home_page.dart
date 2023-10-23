@@ -1,10 +1,8 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:kontaktlista/add_contact_alert.dart';
+import 'package:kontaktlista/contact_card.dart';
 import 'package:kontaktlista/edit_contact.dart';
 import 'package:kontaktlista/model/contact.dart';
 import 'package:kontaktlista/repositories/contact_repository.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -84,34 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             contactRepository:
                                                 ContactRepository())));
                               },
-                              child: Column(children: [
-                                Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      const SizedBox(height: 100),
-                                      CircleAvatar(
-                                          radius: 40,
-                                          backgroundImage:
-                                              // if contact has image setup else use below
-                                              //Image.file(File(tempAvatarFile?.path ?? '')).image,
-                                              Image.network(
-                                                      'https://gerarmemes.s3.us-east-2.amazonaws.com/memes/66178707.webp')
-                                                  .image),
-                                      Text(
-                                          'Nome: ${contact.getName} ${contact.getSurname}'),
-                                    ]),
-                                Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Text('Phone: ${contact.getPhone}'),
-                                      Text('Photo: ${contact.getPhoto}'),
-                                    ]),
-                                const Divider(
-                                  thickness: 3.0,
-                                )
-                              ]));
+                              child: ContactCard(contact: contact));
                         },
                       )))
           ])),

@@ -40,7 +40,7 @@ class ContactRepository implements CrudInterface {
       print('tentando insert...');
       var result = await _dio.post('/Contacts', data: address.toMap());
 
-      return (result.statusCode ?? 0) == 200;
+      return (result.statusCode ?? 0) == 201;
     } on Exception catch (e) {
       print('deu ruim insert...');
       return false;
