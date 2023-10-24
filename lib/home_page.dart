@@ -15,6 +15,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<Contact> _contacts = List.empty(growable: true);
   final ContactRepository _contactRepository = ContactRepository();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -23,9 +24,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _loadData() async {
+    setState(() {
+      _isLoading = true;
+    });
     debugPrint('fetching contacts...');
     _contacts = await _contactRepository.fetch();
-    setState(() {});
+    setState(() {
+      _isLoading = false;
+    });
+    debugPrint('fetching ok...');
   }
 
   @override
@@ -45,12 +52,13 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
               onTap: () async {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => EditContactPage(
-                            title: 'Novo contato',
-                            isNewContact: true,
-                            contactRepository: ContactRepository())));
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => EditContactPage(
+                                title: 'Novo contato',
+                                isNewContact: true,
+                                contactRepository: ContactRepository())))
+                    .then((value) => _loadData());
               },
               child: Container(
                   margin: const EdgeInsets.only(right: 20),
@@ -61,30 +69,34 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-            Expanded(
-                child: _contacts.isEmpty
-                    ? const Text(
-                        'Lista de contatos vazia. Toque no + acima para inserir.')
-                    : Scrollbar(
-                        child: ListView.builder(
-                        itemCount: _contacts.length,
-                        itemBuilder: (BuildContext bc, int index) {
-                          Contact contact = _contacts[index];
-                          return GestureDetector(
-                              onTap: () async {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EditContactPage(
-                                            title: 'Novo contato',
-                                            contact: contact,
-                                            isNewContact: false,
-                                            contactRepository:
-                                                ContactRepository())));
-                              },
-                              child: ContactCard(contact: contact));
-                        },
-                      )))
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Expanded(
+                    child: _contacts.isEmpty
+                        ? const Text(
+                            'Lista de contatos vazia. Toque no + acima para inserir.')
+                        : Scrollbar(
+                            child: ListView.builder(
+                            itemCount: _contacts.length,
+                            itemBuilder: (BuildContext bc, int index) {
+                              Contact contact = _contacts[index];
+                              return GestureDetector(
+                                  onTap: () async {
+                                    Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditContactPage(
+                                                        title: 'Editar contato',
+                                                        contact: contact,
+                                                        isNewContact: false,
+                                                        contactRepository:
+                                                            ContactRepository())))
+                                        .then((value) => _loadData());
+                                  },
+                                  child: ContactCard(contact: contact));
+                            },
+                          )))
           ])),
     );
   }

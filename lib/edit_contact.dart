@@ -1,8 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kontaktlista/model/contact.dart';
 import 'package:kontaktlista/repositories/contact_repository.dart';
+import 'package:kontaktlista/service/base64_service.dart';
+import 'package:kontaktlista/service/image_service.dart';
 
 class EditContactPage extends StatefulWidget {
   const EditContactPage(
@@ -24,7 +31,8 @@ class _EditContactPageState extends State<EditContactPage> {
   var nameInputController = TextEditingController(text: '');
   var surnameInputController = TextEditingController(text: '');
   var phoneInputController = TextEditingController(text: '');
-  XFile? tempAvatarFile;
+  //String _imagePath = '';
+  String _imageEncoded = '';
 
   late Contact _contact;
   late ContactRepository _contactRepository;
@@ -43,6 +51,8 @@ class _EditContactPageState extends State<EditContactPage> {
     nameInputController.text = _contact.getName;
     surnameInputController.text = _contact.getSurname;
     phoneInputController.text = _contact.getPhone;
+    _imageEncoded = _contact.getPhoto;
+
     _isNewContact = widget.isNewContact;
   }
 
@@ -102,22 +112,34 @@ class _EditContactPageState extends State<EditContactPage> {
                       ),
                       GestureDetector(
                           onTap: () async {
-                            final ImagePicker _picker = ImagePicker();
-                            tempAvatarFile = await _picker.pickImage(
+                            final ImagePicker picker = ImagePicker();
+                            XFile? tempAvatarFile = await picker.pickImage(
                                 source: ImageSource.camera);
-                            if (tempAvatarFile != null) {
-                              debugPrint('image is ${tempAvatarFile?.path}');
+                            CroppedFile? cropped = await ImageCropper()
+                                .cropImage(
+                                    sourcePath: tempAvatarFile!.path,
+                                    aspectRatioPresets: [
+                                  CropAspectRatioPreset.square,
+                                  CropAspectRatioPreset.ratio4x3,
+                                  CropAspectRatioPreset.ratio3x2
+                                ]);
+
+                            if (cropped != null) {
+                              setState(() {
+                                String imagePath = cropped.path;
+                                _imageEncoded =
+                                    Base64Service.imagePathToBase64String(
+                                        imagePath);
+                              });
                             }
                           },
                           child: Column(children: [
                             CircleAvatar(
                                 radius: 50,
-                                backgroundImage:
-                                    // if contact has image setup else use below
-                                    //Image.file(File(tempAvatarFile?.path ?? '')).image,
-                                    Image.network(
-                                            'https://gerarmemes.s3.us-east-2.amazonaws.com/memes/66178707.webp')
-                                        .image),
+                                backgroundImage: Image.memory(
+                                        ImageService.imageFromBase64String(
+                                            _imageEncoded))
+                                    .image),
                             const Text(
                                 'Toque na imagem para escolher uma foto.'),
                           ])),
@@ -152,62 +174,60 @@ class _EditContactPageState extends State<EditContactPage> {
                       const SizedBox(
                         height: 20,
                       ),
-                      _isSaving
-                          ? CircularProgressIndicator()
-                          : TextButton(
-                              onPressed: () async {
-                                debugPrint('will save...');
-                                _contact.setName(nameInputController.text);
-                                _contact
-                                    .setSurname(surnameInputController.text);
-                                _contact.setPhone(phoneInputController.text);
-                                _contact.setPhoto('photo');
+                      TextButton(
+                          onPressed: () async {
+                            if (!_isSaving) {
+                              debugPrint('will save...');
+                              _contact.setName(nameInputController.text);
+                              _contact.setSurname(surnameInputController.text);
+                              _contact.setPhone(phoneInputController.text);
+                              _contact.setPhoto(_imageEncoded);
 
-                                setState(() {
-                                  _isSaving = true;
-                                });
+                              setState(() {
+                                _isSaving = true;
+                              });
 
-                                if (_contact.getName.isNotEmpty &&
-                                    _contact.getSurname.isNotEmpty &&
-                                    _contact.getPhone.isNotEmpty) {
-                                  bool success = _isNewContact
-                                      ? await _contactRepository
-                                          .insert(_contact)
-                                      : await _contactRepository
-                                          .update(_contact);
-                                  if (success) {
-                                    await _showDialog(
-                                        'Contato criado com sucesso.');
-                                    await Future.delayed(
-                                        const Duration(seconds: 1));
-                                    if (!context.mounted) return;
-                                    setState(() {
-                                      _isSaving = false;
-                                    });
-                                    Navigator.of(context).pop();
-                                  } else {
-                                    _showDialog(
-                                        'Erro ao criar contato. Não foi possível adicionar ao banco de dados.');
-                                    setState(() {
-                                      _isSaving = false;
-                                    });
-                                  }
+                              if (_contact.getName.isNotEmpty &&
+                                  _contact.getSurname.isNotEmpty &&
+                                  _contact.getPhone.isNotEmpty) {
+                                bool success = _isNewContact
+                                    ? await _contactRepository.insert(_contact)
+                                    : await _contactRepository.update(_contact);
+                                if (success) {
+                                  await _showDialog(
+                                      'Contato criado com sucesso.');
+                                  await Future.delayed(
+                                      const Duration(seconds: 1));
+                                  if (!context.mounted) return;
+                                  setState(() {
+                                    _isSaving = false;
+                                  });
+                                  Navigator.of(context).pop();
                                 } else {
                                   _showDialog(
-                                      'Contato não criado. Verifique os campos.');
+                                      'Erro ao criar contato. Não foi possível adicionar ao banco de dados.');
                                   setState(() {
                                     _isSaving = false;
                                   });
                                 }
-                              },
-                              style: ButtonStyle(
-                                  shape: MaterialStateProperty.all(
-                                      RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10))),
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.red)),
-                              child: const SizedBox(
+                              } else {
+                                _showDialog(
+                                    'Contato não criado. Verifique os campos.');
+                                setState(() {
+                                  _isSaving = false;
+                                });
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                              shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10))),
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.red)),
+                          child: _isSaving
+                              ? const CircularProgressIndicator()
+                              : const SizedBox(
                                   width: 100,
                                   child: Row(
                                       mainAxisAlignment:

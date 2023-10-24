@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:kontaktlista/model/contact.dart';
+import 'package:kontaktlista/service/image_service.dart';
 
 class ContactCard extends StatelessWidget {
   final Contact contact;
@@ -19,8 +23,8 @@ class ContactCard extends StatelessWidget {
                     backgroundImage:
                         // if contact has image setup else use below
                         //Image.file(File(tempAvatarFile?.path ?? '')).image,
-                        Image.network(
-                                'https://gerarmemes.s3.us-east-2.amazonaws.com/memes/66178707.webp')
+                        Image.memory(ImageService.imageFromBase64String(
+                                contact.getPhoto))
                             .image),
                 const SizedBox(width: 30),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -31,12 +35,6 @@ class ContactCard extends StatelessWidget {
                   ),
                   Text(
                     'Phone: ${contact.getPhone}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    'Photo: ${contact.getPhoto}',
                     style: const TextStyle(
                       fontSize: 14,
                     ),
